@@ -22,12 +22,12 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.pm.PackageManager
 import kotlinx.android.synthetic.main.activity_main.*
-import android.support.v4.app.ActivityCompat
-import android.support.v7.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import android.provider.MediaStore
 import android.content.Intent
 import android.graphics.*
 import android.net.Uri
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 
 class MainActivity : AppCompatActivity(),
