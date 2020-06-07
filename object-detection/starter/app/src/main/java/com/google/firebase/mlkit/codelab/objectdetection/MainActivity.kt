@@ -27,8 +27,13 @@ import android.provider.MediaStore
 import android.content.Intent
 import android.graphics.*
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
+import com.google.firebase.ml.vision.objects.FirebaseVisionObject
+import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetectorOptions
 
 class MainActivity : AppCompatActivity(),
     ActivityCompat.OnRequestPermissionsResultCallback {
@@ -83,6 +88,7 @@ class MainActivity : AppCompatActivity(),
             imageView.setImageBitmap(image)
 
             // TODO: run through ODT and display result
+            runObjectDetection(image)
         }
     }
 
@@ -91,6 +97,39 @@ class MainActivity : AppCompatActivity(),
      */
     private fun runObjectDetection(bitmap: Bitmap) {
         // TODO: implement along codelab
+        val image = FirebaseVisionImage.fromBitmap(bitmap)
+        val options = FirebaseVisionObjectDetectorOptions.Builder()
+            .setDetectorMode(FirebaseVisionObjectDetectorOptions.SINGLE_IMAGE_MODE)
+            .enableMultipleObjects()
+            .enableClassification()
+            .build()
+        val detector = FirebaseVision.getInstance().getOnDeviceObjectDetector(options)
+
+        detector.processImage(image)
+            .addOnSuccessListener {
+                debugPrint(it)
+            }
+            .addOnFailureListener {
+                Toast.makeText(baseContext, "Oops, something went wrong!",
+                    Toast.LENGTH_SHORT).show()
+            }
+
+    }
+
+    private fun debugPrint(visionObjects : List<FirebaseVisionObject>) {
+        val LOG_MOD = "MLKit-ODT"
+        for ((idx, obj) in visionObjects.withIndex()) {
+            val box = obj.boundingBox
+
+            Log.d(LOG_MOD, "Detected object: ${idx} ")
+            Log.d(LOG_MOD, "  Category: ${obj.classificationCategory}")
+            Log.d(LOG_MOD, "  trackingId: ${obj.trackingId}")
+            Log.d(LOG_MOD, "  boundingBox: (${box.left}, ${box.top}) - (${box.right},${box.bottom})")
+            if (obj.classificationCategory != FirebaseVisionObject.CATEGORY_UNKNOWN) {
+                val confidence: Int = obj.classificationConfidence!!.times(100).toInt()
+                Log.d(LOG_MOD, "  Confidence: ${confidence}%")
+            }
+        }
     }
 
     /**
